@@ -146,27 +146,9 @@ BiSPoLP-ML/
 │   ├── v1/                 # Baseline results (SMOTE, no PCA)
 │   └── v4/                 # Final pipeline results
 │
-├── article/
-│   └── generate_article.py   # Article generator (python-docx)
-│                              # .docx outputs not versioned (pending publication)
-│
-└── docs/
-    └── gerar_documentacao.py  # Documentation generator (PT-BR + EN)
-                               # .docx outputs not versioned (pending publication)
+├── article/                   # not versioned (pending publication)
+└── docs/                      # not versioned (pending publication)
 ```
-
----
-
-## Article and documentation
-
-The scientific article and technical documentation are generated locally via:
-
-```bash
-python article/generate_article.py   # generates PT-BR and EN .docx
-python docs/gerar_documentacao.py    # generates COMO_FUNCIONA.docx and HOW_IT_WORKS.docx
-```
-
-These files are not versioned in this repository as the article is currently under preparation for submission.
 
 ---
 

@@ -3,8 +3,8 @@ potato_data/
 data/potato_data/
 
 # Scientific article and technical documentation (pending publication)
-article/*.docx
-docs/*.docx
+article/
+docs/
 
 # Python cache
 __pycache__/
