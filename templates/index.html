@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BiSPoLP — Biotic Stress Potato LncRNA Predictor</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --purple: #6c63ff;
+      --purple-dark: #4f46b8;
+      --green: #22c55e;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── header ── */
+    .topbar {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+      padding: 28px 40px 24px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      box-shadow: 0 4px 20px rgba(79,70,229,.35);
+    }
+    .topbar-icon { font-size: 2.8rem; }
+    .topbar-text { flex: 1; }
+    .topbar h1 { font-size: 1.7rem; font-weight: 700; line-height: 1.2; }
+    .topbar p  { font-size: .92rem; opacity: .85; margin-top: 4px; }
+
+    /* ── logos no header ── */
+    .topbar-logos { display: flex; align-items: center; gap: 14px; }
+    .topbar-logos img { height: 44px; filter: brightness(0) invert(1); opacity: .90; }
+
+    /* ── footer ── */
+    .site-footer {
+      background: #1e1b4b;
+      color: rgba(255,255,255,.7);
+      text-align: center;
+      padding: 20px 40px;
+      font-size: .82rem;
+      margin-top: 48px;
+    }
+    .site-footer a { color: rgba(255,255,255,.85); text-decoration: none; }
+    .site-footer a:hover { text-decoration: underline; }
+    .footer-logos { display: flex; justify-content: center; align-items: center; gap: 24px; margin-bottom: 10px; }
+    .footer-logos img { height: 36px; filter: brightness(0) invert(1); opacity: .80; }
+
+    /* ── language switcher ── */
+    .lang-switcher {
+      display: flex;
+      gap: 4px;
+      background: rgba(255,255,255,.15);
+      border-radius: 20px;
+      padding: 4px;
+      align-self: flex-start;
+      margin-top: 4px;
+    }
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,.7);
+      font-size: .8rem;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 16px;
+      cursor: pointer;
+      transition: all .2s;
+      letter-spacing: .04em;
+    }
+    .lang-btn.active {
+      background: rgba(255,255,255,.9);
+      color: #4f46e5;
+    }
+    .lang-btn:not(.active):hover { color: white; }
+
+    /* ── layout ── */
+    .page { max-width: 1200px; margin: 0 auto; padding: 30px 24px 60px; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    @media (max-width: 800px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    /* ── card ── */
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 28px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    .card-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ── textarea ── */
+    .seq-wrap { position: relative; }
+    textarea {
+      width: 100%;
+      min-height: 190px;
+      padding: 14px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: .88rem;
+      resize: vertical;
+      transition: border-color .2s;
+      line-height: 1.5;
+      background: #fafafa;
+      color: var(--text);
+    }
+    textarea:focus { outline: none; border-color: var(--purple); background: #fff; }
+    .seq-counter {
+      position: absolute;
+      bottom: 8px;
+      right: 12px;
+      font-size: .78rem;
+      color: var(--muted);
+      pointer-events: none;
+    }
+
+    /* ── buttons ── */
+    .btn-row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: .92rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all .2s;
+    }
+    .btn-primary { background: var(--purple); color: white; flex: 1; }
+    .btn-primary:hover  { background: var(--purple-dark); transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-secondary { background: #e2e8f0; color: var(--text); }
+    .btn-secondary:hover { background: #cbd5e1; }
+    .btn-random { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+    .btn-random:hover { background: linear-gradient(135deg, #059669, #047857); }
+    .btn-random.loading-rand { opacity: .7; pointer-events: none; }
+
+    /* ── tip box ── */
+    .tip {
+      margin-top: 14px;
+      padding: 10px 14px;
+      background: #f0f4ff;
+      border-left: 3px solid var(--purple);
+      border-radius: 6px;
+      font-size: .83rem;
+      color: var(--muted);
+    }
+
+    /* ── spinner ── */
+    .spinner-wrap {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 50px 0;
+      gap: 14px;
+    }
+    .spinner-wrap p { color: var(--muted); font-size: .9rem; }
+    .spinner {
+      width: 44px; height: 44px;
+      border: 4px solid #e2e8f0;
+      border-top-color: var(--purple);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── error ── */
+    .error-box {
+      display: none;
+      background: #fef2f2;
+      color: #b91c1c;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border-left: 4px solid var(--red);
+      font-size: .9rem;
+      margin-bottom: 18px;
+    }
+
+    /* ── results panel ── */
+    .results-wrap { display: none; }
+
+    .top-banner {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: white;
+      border-radius: 10px;
+      padding: 22px 26px;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    .top-icon { font-size: 2.6rem; }
+    .top-info { flex: 1; }
+    .top-label { font-size: .78rem; opacity: .8; text-transform: uppercase; letter-spacing: .06em; }
+    .top-name  { font-size: 1.3rem; font-weight: 700; margin: 3px 0; }
+    .top-disease { font-size: .88rem; opacity: .85; }
+    .top-score { text-align: right; min-width: 90px; }
+    .top-score .pct { font-size: 2rem; font-weight: 700; line-height: 1; }
+    .top-score .lbl { font-size: .72rem; opacity: .8; }
+    .f1-badge {
+      display: inline-block;
+      background: rgba(255,255,255,.2);
+      border-radius: 20px;
+      padding: 3px 10px;
+      font-size: .75rem;
+      margin-top: 6px;
+    }
+
+    .result-list { display: flex; flex-direction: column; gap: 10px; }
+    .result-row {
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: border-color .2s;
+    }
+    .result-row:hover { border-color: #a5b4fc; }
+    .result-row.top-row { border-color: var(--purple); background: #f5f3ff; }
+
+    .row-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 7px;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+    .row-name { font-weight: 600; font-size: .93rem; }
+    .row-badges { display: flex; gap: 5px; align-items: center; }
+    .badge { font-size: .7rem; padding: 2px 8px; border-radius: 12px; font-weight: 500; }
+    .badge-type { background: #e0f2fe; color: #0369a1; }
+    .badge-f1   { background: #f3e8ff; color: #7e22ce; }
+    .badge-roc  { background: #fef9c3; color: #854d0e; }
+
+    .bar-wrap { position: relative; }
+    .bar-bg { height: 20px; background: #f1f5f9; border-radius: 6px; overflow: hidden; }
+    .bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      padding-left: 8px;
+      font-size: .75rem;
+      font-weight: 700;
+      color: white;
+      transition: width .6s ease;
+      width: 0%;
+    }
+    .bar-pct {
+      position: absolute;
+      right: 6px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: .75rem;
+      font-weight: 700;
+      color: var(--muted);
+    }
+    .unavail { color: var(--muted); font-size: .82rem; font-style: italic; }
+
+    .seq-info-row {
+      margin-top: 16px;
+      font-size: .8rem;
+      color: var(--muted);
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    /* ── models section ── */
+    .models-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 6px;
+    }
+    .model-card { padding: 12px 14px; border: 1px solid var(--border); border-radius: 8px; background: #fafafa; }
+    .model-card-name { font-weight: 600; font-size: .88rem; margin-bottom: 4px; }
+    .model-card-meta { font-size: .76rem; color: var(--muted); line-height: 1.6; margin-bottom: 6px; }
+    .dot-loaded  { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 4px; }
+    .mc-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 6px; }
+    .mc-metric  { background: #f1f5f9; border-radius: 6px; padding: 4px 6px; text-align: center; }
+    .mc-label   { display: block; font-size: .65rem; color: var(--muted); text-transform: uppercase; letter-spacing: .03em; }
+    .mc-val     { display: block; font-size: .8rem; font-weight: 700; color: var(--text); }
+    .dot-missing { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #d1d5db; margin-right: 4px; }
+
+    .notice {
+      background: #fefce8;
+      border: 1px solid #fde68a;
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: .83rem;
+      color: #92400e;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-icon">🥔</div>
+  <div class="topbar-text">
+    <h1 data-i18n="title">Potato Biotic Stress Predictor</h1>
+    <p data-i18n="subtitle">Identify the probability of 12 pathogens from an lncRNA sequence using Machine Learning</p>
+  </div>
+  <div class="topbar-logos">
+    <img src="/static/lab2.png" alt="Lab logo" title="Laboratório">
+    <img src="/static/OmixLab_logo.png" alt="OmixLab logo" title="OmixLab">
+  </div>
+  <div class="lang-switcher">
+    <button class="lang-btn active" onclick="setLang('en')" id="btn-lang-en">EN</button>
+    <button class="lang-btn"        onclick="setLang('pt')" id="btn-lang-pt">PT</button>
+  </div>
+</header>
+
+<div class="page">
+
+  <div class="grid-2" style="margin-bottom: 24px;">
+
+    <!-- INPUT -->
+    <div class="card">
+      <div class="card-title" data-i18n="inputTitle">📝 lncRNA Sequence</div>
+
+      <div class="seq-wrap">
+        <textarea id="seq-input" data-i18n-placeholder="inputPlaceholder"></textarea>
+        <span class="seq-counter" id="seq-counter">0 nt</span>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn-primary"   onclick="predict()"     data-i18n="btnAnalyze">🔍 Analyze</button>
+        <button class="btn-random"    onclick="loadRandom()"  id="btn-random" data-i18n="btnRandom">🎲 Random Sequence</button>
+        <button class="btn-secondary" onclick="clearAll()"    data-i18n="btnClear">✕ Clear</button>
+      </div>
+
+      <div class="tip" data-i18n-html="tip">
+        <strong>Tip:</strong> Use <kbd>Ctrl+Enter</kbd> to analyze.
+        Sequences shorter than 50 nt may produce less reliable results.
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="card">
+      <div class="card-title" data-i18n="resultsTitle">📊 Results</div>
+
+      <div class="error-box" id="error-box"></div>
+
+      <div class="spinner-wrap" id="spinner">
+        <div class="spinner"></div>
+        <p data-i18n="spinnerText">Analyzing sequence across 12 models…</p>
+      </div>
+
+      <div class="results-wrap" id="results">
+        <div class="top-banner" id="top-banner">
+          <div class="top-icon" id="top-icon">🧬</div>
+          <div class="top-info">
+            <div class="top-label" data-i18n="topLabel">Most likely pathogen</div>
+            <div class="top-name"    id="top-name">—</div>
+            <div class="top-disease" id="top-disease">—</div>
+            <span class="f1-badge"   id="top-f1">F1: —</span>
+          </div>
+          <div class="top-score">
+            <div class="pct" id="top-pct">—</div>
+            <div class="lbl" data-i18n="probLabel">probability</div>
+          </div>
+        </div>
+
+        <div class="result-list" id="result-list"></div>
+        <div class="seq-info-row" id="seq-info-row"></div>
+      </div>
+
+      <div id="placeholder" style="color:var(--muted);font-size:.9rem;text-align:center;padding:40px 0;" data-i18n-html="placeholder">
+        Insert a sequence and click <strong>Analyze</strong>.
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MODELS -->
+  <div class="card">
+    <div class="card-title" data-i18n="modelsTitle">📋 Trained Models</div>
+    <p style="color:var(--muted);font-size:.88rem;margin-bottom:16px;" data-i18n="modelsSubtitle">
+      12 independent classifiers, each trained specifically for one potato pathogen.
+    </p>
+    <div class="models-grid" id="models-grid"></div>
+    <div class="notice" data-i18n="notice">
+      ⚠️ Probabilities indicate how similar the sequence is to the k-mer profile of lncRNAs differentially expressed during each infection. A high value is not a clinical diagnosis — use as an exploratory tool.
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── translations ──────────────────────────────────────────────────────────────
+
+const TRANSLATIONS = {
+  en: {
+    title:          'BiSPoLP — Biotic Stress Potato LncRNA Predictor',
+    subtitle:       'Identify the probability of 12 pathogens from an lncRNA sequence using Machine Learning',
+    inputTitle:     '📝 lncRNA Sequence',
+    inputPlaceholder:
+      'Paste a nucleotide sequence (DNA or RNA)\nor click "Random Sequence" to test.\n\nAccepted formats:\n• Simple: ATCGATCGATCG...\n• FASTA: >id\n  ATCGATCGATCG...',
+    btnAnalyze:     '🔍 Analyze',
+    btnRandom:      '🎲 Random Sequence',
+    btnRandomLoad:  '⏳ Loading…',
+    btnClear:       '✕ Clear',
+    tip:            '<strong>Tip:</strong> Use <kbd>Ctrl+Enter</kbd> to analyze. Sequences shorter than 50 nt may produce less reliable results.',
+    resultsTitle:   '📊 Results',
+    spinnerText:    'Analyzing sequence across 12 models…',
+    topLabel:       'Most likely pathogen',
+    probLabel:      'probability',
+    placeholder:    'Insert a sequence and click <strong>Analyze</strong>.',
+    modelsTitle:    '📋 Trained Models',
+    modelsSubtitle: '12 independent classifiers, each trained specifically for one potato pathogen.',
+    notice:         '⚠️ Probabilities indicate how similar the sequence is to the k-mer profile of lncRNAs differentially expressed during each infection. A high value is not a clinical diagnosis — use as an exploratory tool.',
+    loaded:         'Loaded',
+    notFound:       'Not found',
+    typeLabel:      'Type',
+    modelLabel:     'Model',
+    seqLength:      'Length',
+    modelsConsulted:'Models consulted',
+    errEmpty:       'Please insert a sequence before analyzing.',
+    errRandom:      'Error fetching random sequence.',
+    errConn:        'Connection error: ',
+    f1Label:        'F1 model: ',
+    precisionLabel: 'Precision',
+    recallLabel:    'Recall',
+    accuracyLabel:  'Accuracy',
+    // pathogen types
+    types: {
+      'Fungo':          'Fungus',
+      'Nematoide':      'Nematode',
+      'Inseto':         'Insect',
+      'Bactéria':       'Bacterium',
+      'Oomiceto':       'Oomycete',
+      'Vírus':          'Virus',
+      'Protista':       'Protist',
+      'Actinobactéria': 'Actinobacterium',
+    },
+    // pathogen diseases
+    diseases: {
+      'Alternaria solani':          'Early blight',
+      'Globodera spp':              'Potato cyst nematode',
+      'Leptinotarsa decemlineata':  'Colorado potato beetle',
+      'Meloidogyne javanica':       'Root-knot nematode',
+      'Pectobacterium carotovorum': 'Soft rot',
+      'Phytophthora infestans':     'Late blight',
+      'Potato virus A':             'Potato virus A',
+      'Potato virus Y':             'Potato virus Y',
+      'Ralstonia solanacearum':     'Bacterial wilt',
+      'Spongospora subterranea':    'Powdery scab',
+      'Streptomyces scabies':       'Common scab',
+      'Synchytrium endobioticum':   'Potato wart',
+    },
+  },
+  pt: {
+    title:          'BiSPoLP — Preditor de lncRNA de Batata por Machine Learning',
+    subtitle:       'Identifique a probabilidade de 12 patógenos a partir de uma sequência lncRNA via Machine Learning',
+    inputTitle:     '📝 Sequência lncRNA',
+    inputPlaceholder:
+      'Cole a sequência de nucleotídeos (DNA ou RNA)\nou clique em "Sequência Aleatória" para testar.\n\nFormatos aceitos:\n• Simples: ATCGATCGATCG...\n• FASTA: >id\n  ATCGATCGATCG...',
+    btnAnalyze:     '🔍 Analisar',
+    btnRandom:      '🎲 Sequência Aleatória',
+    btnRandomLoad:  '⏳ Buscando…',
+    btnClear:       '✕ Limpar',
+    tip:            '<strong>Dica:</strong> Use <kbd>Ctrl+Enter</kbd> para analisar. Sequências curtas (&lt; 50 nt) podem ter resultados menos confiáveis.',
+    resultsTitle:   '📊 Resultados',
+    spinnerText:    'Analisando sequência em 12 modelos…',
+    topLabel:       'Patógeno mais provável',
+    probLabel:      'probabilidade',
+    placeholder:    'Insira uma sequência e clique em <strong>Analisar</strong>.',
+    modelsTitle:    '📋 Modelos Treinados',
+    modelsSubtitle: '12 classificadores independentes, cada um treinado especificamente para um patógeno de batata.',
+    notice:         '⚠️ As probabilidades indicam o quanto a sequência se assemelha ao perfil de k-mers das lncRNAs diferencialmente expressas durante cada infecção. Um valor alto não é diagnóstico clínico — use como ferramenta exploratória.',
+    loaded:         'Carregado',
+    notFound:       'Não encontrado',
+    typeLabel:      'Tipo',
+    modelLabel:     'Modelo',
+    seqLength:      'Comprimento',
+    modelsConsulted:'Modelos consultados',
+    errEmpty:       'Insira uma sequência antes de analisar.',
+    errRandom:      'Erro ao buscar sequência aleatória.',
+    errConn:        'Erro de conexão: ',
+    f1Label:        'F1 modelo: ',
+    precisionLabel: 'Precisão',
+    recallLabel:    'Recall',
+    accuracyLabel:  'Acurácia',
+    types: {},    // keep as-is from API
+    diseases: {}, // keep as-is from API
+  },
+};
+
+// ── i18n core ─────────────────────────────────────────────────────────────────
+
+let currentLang = localStorage.getItem('lang') || 'en';
+let lastResults  = null;
+let cachedInfo   = null;
+
+function T(key) {
+  return TRANSLATIONS[currentLang][key] ?? TRANSLATIONS['en'][key] ?? key;
+}
+
+function Ttype(ptType) {
+  const map = TRANSLATIONS[currentLang].types;
+  return (map && map[ptType]) ? map[ptType] : ptType;
+}
+
+function Tdisease(pathogenName, ptDisease) {
+  const map = TRANSLATIONS[currentLang].diseases;
+  return (map && map[pathogenName]) ? map[pathogenName] : ptDisease;
+}
+
+function applyStaticTranslations() {
+  // text content
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    const val = T(key);
+    if (val) el.textContent = val;
+  });
+  // innerHTML (for elements with <strong>, <kbd> etc.)
+  document.querySelectorAll('[data-i18n-html]').forEach(el => {
+    const key = el.getAttribute('data-i18n-html');
+    const val = T(key);
+    if (val) el.innerHTML = val;
+  });
+  // placeholder
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.getAttribute('data-i18n-placeholder');
+    const val = T(key);
+    if (val) el.placeholder = val;
+  });
+  // page title
+  document.title = T('title');
+  document.documentElement.lang = currentLang === 'pt' ? 'pt-BR' : 'en';
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('lang', lang);
+
+  document.getElementById('btn-lang-en').classList.toggle('active', lang === 'en');
+  document.getElementById('btn-lang-pt').classList.toggle('active', lang === 'pt');
+
+  applyStaticTranslations();
+
+  // re-render dynamic sections
+  if (cachedInfo)   buildModelCards(cachedInfo);
+  if (lastResults)  renderResults(lastResults);
+}
+
+// ── helpers ───────────────────────────────────────────────────────────────────
+
+const $ = id => document.getElementById(id);
+
+function barColor(pct) {
+  if (pct >= 60) return 'linear-gradient(90deg,#22c55e,#16a34a)';
+  if (pct >= 35) return 'linear-gradient(90deg,#f59e0b,#d97706)';
+  return 'linear-gradient(90deg,#94a3b8,#64748b)';
+}
+
+function showError(msg) {
+  $('error-box').textContent = msg;
+  $('error-box').style.display = 'block';
+}
+
+function hideError() {
+  $('error-box').style.display = 'none';
+  $('error-box').textContent = '';
+}
+
+// ── sequence counter ──────────────────────────────────────────────────────────
+
+$('seq-input').addEventListener('input', () => {
+  const nt = $('seq-input').value.replace(/[^ATCGUGRYWSKMBDHVN]/gi,'').length;
+  $('seq-counter').textContent = nt > 0 ? `${nt} nt` : '0 nt';
+});
+
+$('seq-input').addEventListener('keydown', e => {
+  if (e.ctrlKey && e.key === 'Enter') predict();
+});
+
+// ── random sequence ───────────────────────────────────────────────────────────
+
+async function loadRandom() {
+  const btn = $('btn-random');
+  btn.classList.add('loading-rand');
+  btn.textContent = T('btnRandomLoad');
+  try {
+    const r = await fetch('/api/random');
+    const d = await r.json();
+    if (d.error) { showError(d.error); return; }
+    $('seq-input').value = `>${d.id}\n${d.sequence}`;
+    $('seq-counter').textContent = `${d.length} nt`;
+    hideError();
+  } catch(e) {
+    showError(T('errRandom'));
+  } finally {
+    btn.classList.remove('loading-rand');
+    btn.innerHTML = T('btnRandom');
+  }
+}
+
+// ── clear ─────────────────────────────────────────────────────────────────────
+
+function clearAll() {
+  $('seq-input').value = '';
+  $('seq-counter').textContent = '0 nt';
+  hideError();
+  lastResults = null;
+  $('results').style.display     = 'none';
+  $('spinner').style.display     = 'none';
+  $('placeholder').style.display = 'block';
+}
+
+// ── predict ───────────────────────────────────────────────────────────────────
+
+async function predict() {
+  hideError();
+  const seq = $('seq-input').value.trim();
+  if (!seq) { showError(T('errEmpty')); return; }
+
+  $('placeholder').style.display = 'none';
+  $('results').style.display     = 'none';
+  $('spinner').style.display     = 'flex';
+
+  try {
+    const r = await fetch('/api/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sequence: seq }),
+    });
+    const d = await r.json();
+    $('spinner').style.display = 'none';
+
+    if (!r.ok || d.error) {
+      showError(d.error || 'Error processing sequence.');
+      $('placeholder').style.display = 'block';
+      return;
+    }
+    lastResults = d;
+    renderResults(d);
+  } catch(e) {
+    $('spinner').style.display     = 'none';
+    $('placeholder').style.display = 'block';
+    showError(T('errConn') + e.message);
+  }
+}
+
+// ── render results ────────────────────────────────────────────────────────────
+
+function renderResults(data) {
+  const pinfo = data.pathogen_info || {};
+  const top   = data.top_prediction;
+
+  if (top) {
+    const disease = Tdisease(top.pathogen, top.doenca || top.tipo || '');
+    $('top-icon').textContent    = top.icone || '🧬';
+    $('top-name').textContent    = top.pathogen || '—';
+    $('top-disease').textContent = disease;
+    $('top-pct').textContent     = top.probabilidade != null
+      ? top.probabilidade.toFixed(1) + '%' : '—';
+    $('top-f1').textContent      = `${T('f1Label')}${(top.f1_modelo * 100).toFixed(1)}%`;
+  }
+
+  const preds = Object.entries(data.predictions)
+    .sort((a, b) => (b[1].probabilidade ?? -1) - (a[1].probabilidade ?? -1));
+
+  const list = $('result-list');
+  list.innerHTML = '';
+
+  preds.forEach(([name, pred], i) => {
+    const info  = pinfo[name] || {};
+    const prob  = pred.probabilidade;
+    const isTop = i === 0 && pred.status === 'ok';
+    const avail = pred.status === 'ok' && prob != null;
+
+    const row = document.createElement('div');
+    row.className = 'result-row' + (isTop ? ' top-row' : '');
+
+    const typeLabel = info.tipo ? Ttype(info.tipo) : '';
+    const badgeType = typeLabel
+      ? `<span class="badge badge-type">${info.icone || ''} ${typeLabel}</span>` : '';
+    const modelInfo = cachedInfo[name] || {};
+    const badgeF1 = pred.f1_modelo != null
+      ? `<span class="badge badge-f1">F1 ${(pred.f1_modelo*100).toFixed(1)}%</span>` : '';
+    const badgeRoc = modelInfo.roc_auc != null
+      ? `<span class="badge badge-roc">ROC ${(modelInfo.roc_auc*100).toFixed(1)}%</span>` : '';
+
+    let barHtml = '';
+    if (avail) {
+      const clampedW = Math.min(100, Math.max(1, prob));
+      barHtml = `
+        <div class="bar-wrap">
+          <div class="bar-bg">
+            <div class="bar-fill" data-width="${clampedW}"
+                 style="background:${barColor(prob)};width:0%">
+              ${prob >= 12 ? prob.toFixed(1)+'%' : ''}
+            </div>
+          </div>
+          <span class="bar-pct">${prob.toFixed(1)}%</span>
+        </div>`;
+    } else {
+      barHtml = `<div class="unavail">${pred.status}</div>`;
+    }
+
+    row.innerHTML = `
+      <div class="row-head">
+        <span class="row-name">${name}</span>
+        <div class="row-badges">${badgeType}${badgeF1}${badgeRoc}</div>
+      </div>
+      ${barHtml}`;
+    list.appendChild(row);
+  });
+
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      document.querySelectorAll('.bar-fill[data-width]').forEach(el => {
+        el.style.width = el.dataset.width + '%';
+      });
+    });
+  });
+
+  const okCount = preds.filter(p => p[1].status === 'ok').length;
+  $('seq-info-row').innerHTML = `
+    <span>${T('seqLength')}: <strong>${data.sequence_length} nt</strong></span>
+    <span>${T('modelsConsulted')}: <strong>${okCount}/12</strong></span>`;
+
+  $('results').style.display = 'block';
+}
+
+// ── load model cards ──────────────────────────────────────────────────────────
+
+function fmtPct(v) { return v != null ? (v*100).toFixed(1)+'%' : '—'; }
+
+function buildModelCards(info) {
+  const grid = $('models-grid');
+  grid.innerHTML = '';
+  Object.entries(info).forEach(([name, d]) => {
+    const card = document.createElement('div');
+    card.className = 'model-card';
+    const dot = d.loaded
+      ? '<span class="dot-loaded"></span>'
+      : '<span class="dot-missing"></span>';
+    const statusText = d.loaded ? T('loaded') : T('notFound');
+
+    const hasMetrics = d.roc_auc != null;
+    const metricsHtml = hasMetrics ? `
+      <div class="mc-metrics">
+        <div class="mc-metric"><span class="mc-label">F1</span><span class="mc-val">${fmtPct(d.f1)}</span></div>
+        <div class="mc-metric"><span class="mc-label">ROC-AUC</span><span class="mc-val">${fmtPct(d.roc_auc)}</span></div>
+        <div class="mc-metric"><span class="mc-label">${T('precisionLabel')}</span><span class="mc-val">${fmtPct(d.precision)}</span></div>
+        <div class="mc-metric"><span class="mc-label">${T('recallLabel')}</span><span class="mc-val">${fmtPct(d.recall)}</span></div>
+        <div class="mc-metric"><span class="mc-label">${T('accuracyLabel')}</span><span class="mc-val">${fmtPct(d.accuracy)}</span></div>
+        <div class="mc-metric"><span class="mc-label">MCC</span><span class="mc-val">${d.mcc != null ? d.mcc.toFixed(3) : '—'}</span></div>
+      </div>` : `<div class="model-card-meta">F1: ${fmtPct(d.f1)}</div>`;
+
+    card.innerHTML = `
+      <div class="model-card-name">${d.icone || ''} ${name}</div>
+      <div class="model-card-meta">
+        ${dot}${statusText} &nbsp;·&nbsp;
+        ${T('typeLabel')}: ${Ttype(d.tipo || '—')}<br>
+        ${T('modelLabel')}: <strong>${d.model_type}</strong> &nbsp;·&nbsp; K=${d.k}
+      </div>
+      ${metricsHtml}`;
+    grid.appendChild(card);
+  });
+}
+
+async function loadModelsInfo() {
+  try {
+    const r = await fetch('/api/info');
+    const d = await r.json();
+    cachedInfo = d.pathogens || {};
+    buildModelCards(cachedInfo);
+  } catch(e) {
+    console.error('Error loading model info:', e);
+  }
+}
+
+// ── init ──────────────────────────────────────────────────────────────────────
+
+// apply saved language before first paint
+applyStaticTranslations();
+document.getElementById(`btn-lang-${currentLang}`).classList.add('active');
+document.getElementById(currentLang === 'en' ? 'btn-lang-pt' : 'btn-lang-en').classList.remove('active');
+
+window.addEventListener('load', loadModelsInfo);
+</script>
+
+<footer class="site-footer">
+  <div class="footer-logos">
+    <img src="/static/lab2.png" alt="Lab logo">
+    <img src="/static/OmixLab_logo.png" alt="OmixLab logo">
+  </div>
+  <p>
+    BiSPoLP — Biotic Stress Potato LncRNA Predictor &nbsp;|&nbsp;
+    Christian Domingues Sanchez &nbsp;|&nbsp;
+    <a href="mailto:christian.kun@gmail.com">christian.kun@gmail.com</a>
+  </p>
+</footer>
+
+</body>
+</html>

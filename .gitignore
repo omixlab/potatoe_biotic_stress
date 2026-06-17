@@ -1,0 +1,31 @@
+# Raw data (download manually from PotatoBSLnc)
+potato_data/
+data/potato_data/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+
+# Logs and temp files
+*.log
+catboost_info/
+.~lock.*
+
+# Partial experiment results
+experimento_abordagens/
+*_parciais.csv
+
+# Virtual environments
+venv/
+.env/
+env/
+
+# Generated plot files (intermediate)
+graficos_*.png
+
+# OS / editor
+.DS_Store
+.vscode/
+*.swp
