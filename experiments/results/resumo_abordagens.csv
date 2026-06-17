@@ -1,0 +1,6 @@
+Abordagem,F1 médio,F1≥0.70,Melhora vs v1
+A_baseline,0.4652,0,6
+B_positional,0.4538,0,0
+C_padj,0.4758,0,10
+D_pos_padj,0.4696,0,9
+E_stacking,0.37,0,0

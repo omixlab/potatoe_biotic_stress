@@ -1,0 +1,13 @@
+pathogen,k,model_type,f1,f1_std,n_pos,f1_v1,delta_v1
+Alternaria solani,2,NuSVC,0.7447,0.062,78,0.5295,0.2152
+Globodera spp,4,SVC_RBF,0.6992,0.0148,533,0.4899,0.2093
+Leptinotarsa decemlineata,2,GaussianNB,0.6541,0.0366,598,0.4559,0.1982
+Meloidogyne javanica,2,KNN,0.7128,0.0314,47,0.5781,0.1347
+Pectobacterium carotovorum,4,LogisticRegression,0.6301,0.0399,192,0.4347,0.1954
+Phytophthora infestans,2,SVC_RBF,0.6929,0.0334,621,0.4745,0.2184
+Potato virus A,2,GaussianNB,0.6339,0.028,779,0.428,0.2059
+Potato virus Y,5,GaussianNB,0.6741,0.0099,1168,0.4533,0.2208
+Ralstonia solanacearum,2,GaussianNB,0.671,0.0139,432,0.4485,0.2225
+Spongospora subterranea,4,GaussianNB,0.6467,0.0494,103,0.4212,0.2255
+Streptomyces scabies,5,GaussianNB,0.6718,0.0194,480,0.4528,0.219
+Synchytrium endobioticum,2,GaussianNB,0.6884,0.0335,306,0.4807,0.2077
