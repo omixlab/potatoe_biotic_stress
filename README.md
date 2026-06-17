@@ -147,13 +147,26 @@ BiSPoLP-ML/
 │   └── v4/                 # Final pipeline results
 │
 ├── article/
-│   ├── artigo_lncrna_potato_stress.docx  # Scientific article (generated)
-│   └── generate_article.py              # Article generator (python-docx)
+│   └── generate_article.py   # Article generator (python-docx)
+│                              # .docx outputs not versioned (pending publication)
 │
 └── docs/
-    ├── COMO_FUNCIONA.docx  # Technical documentation (PT-BR, editable)
-    └── gerar_documentacao.py
+    └── gerar_documentacao.py  # Documentation generator (PT-BR + EN)
+                               # .docx outputs not versioned (pending publication)
 ```
+
+---
+
+## Article and documentation
+
+The scientific article and technical documentation are generated locally via:
+
+```bash
+python article/generate_article.py   # generates PT-BR and EN .docx
+python docs/gerar_documentacao.py    # generates COMO_FUNCIONA.docx and HOW_IT_WORKS.docx
+```
+
+These files are not versioned in this repository as the article is currently under preparation for submission.
 
 ---
 
