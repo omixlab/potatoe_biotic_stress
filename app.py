@@ -8,9 +8,10 @@ Como rodar:
 Acesse: http://localhost:5000
 """
 
-import json, os, random, warnings
+import json, os, random, time, warnings
 from pathlib import Path
-from collections import Counter
+from collections import Counter, defaultdict
+from functools import wraps
 
 import numpy as np
 import joblib
@@ -20,6 +21,42 @@ from Bio import SeqIO
 warnings.filterwarnings('ignore')
 
 app = Flask(__name__)
+
+# ── Segurança ──────────────────────────────────────────────────────────────────
+app.config['MAX_CONTENT_LENGTH'] = 512 * 1024   # 512 KB máximo por requisição
+
+# Rate limiting simples em memória: max 10 predições por IP por minuto
+_rate_store: dict = defaultdict(list)
+RATE_LIMIT   = 10
+RATE_WINDOW  = 60  # segundos
+
+def rate_limit(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        ip  = request.remote_addr or 'unknown'
+        now = time.time()
+        hits = [t for t in _rate_store[ip] if now - t < RATE_WINDOW]
+        if len(hits) >= RATE_LIMIT:
+            return jsonify({'error': 'Muitas requisições. Tente novamente em breve.'}), 429
+        hits.append(now)
+        _rate_store[ip] = hits
+        return f(*args, **kwargs)
+    return decorated
+
+@app.after_request
+def security_headers(response):
+    response.headers['X-Content-Type-Options']  = 'nosniff'
+    response.headers['X-Frame-Options']         = 'DENY'
+    response.headers['X-XSS-Protection']        = '1; mode=block'
+    response.headers['Referrer-Policy']         = 'strict-origin-when-cross-origin'
+    response.headers['Content-Security-Policy'] = (
+        "default-src 'self'; "
+        "script-src 'self' 'unsafe-inline'; "
+        "style-src 'self' 'unsafe-inline'; "
+        "img-src 'self' data:; "
+        "connect-src 'self';"
+    )
+    return response
 
 # ── Caminhos ──────────────────────────────────────────────────────────────────
 ROOT        = Path(__file__).parent
@@ -121,7 +158,11 @@ def seq_to_vector(sequence: str, k: int, kmer_dict: dict) -> np.ndarray:
     counts = kmers(seq, k)
     return np.array([counts.get(km, 0) for km in sorted(kmer_dict)], dtype=np.float32).reshape(1, -1)
 
+MAX_SEQ_LEN = 50_000  # lncRNAs típicos: 200–10.000 nt
+
 def validate(raw: str):
+    if not isinstance(raw, str) or len(raw) > MAX_SEQ_LEN * 2:
+        return False, 'Sequência muito longa ou formato inválido.'
     seq = raw.strip()
     if seq.startswith('>'):
         lines = seq.splitlines()
@@ -129,11 +170,13 @@ def validate(raw: str):
     seq = seq.upper().replace(' ', '').replace('\n', '').replace('\r', '')
     if not seq:
         return False, 'Sequência vazia.'
+    if len(seq) < 20:
+        return False, 'Sequência muito curta (mínimo 20 nt).'
+    if len(seq) > MAX_SEQ_LEN:
+        return False, f'Sequência muito longa (máximo {MAX_SEQ_LEN} nt).'
     invalid = set(seq) - set('ATCGURN')
     if invalid:
         return False, f"Caracteres inválidos: {', '.join(sorted(invalid))}"
-    if len(seq) < 20:
-        return False, 'Sequência muito curta (mínimo 20 nt).'
     return True, seq
 
 def get_prob(model, X) -> float:
@@ -162,16 +205,18 @@ def random_seq():
     return jsonify({'id': sid, 'sequence': SEQUENCES[sid], 'length': len(SEQUENCES[sid])})
 
 @app.route('/api/predict', methods=['POST'])
+@rate_limit
 def predict():
     try:
-        raw = (request.json or {}).get('sequence', '')
+        body = request.get_json(silent=True) or {}
+        raw  = body.get('sequence', '')
         ok, result = validate(raw)
         if not ok:
             return jsonify({'error': result}), 400
         seq = result
 
         if not MODELS:
-            return jsonify({'error': 'Nenhum modelo carregado.'}), 500
+            return jsonify({'error': 'Nenhum modelo carregado.'}), 503
 
         predictions = {}
         for pathogen, info in MODELS_INFO.items():
@@ -190,8 +235,8 @@ def predict():
                     'f1_modelo': info['f1'],
                     'status': 'ok',
                 }
-            except Exception as e:
-                predictions[pathogen] = {'probabilidade': None, 'f1_modelo': info['f1'], 'status': f'erro: {e}'}
+            except Exception:
+                predictions[pathogen] = {'probabilidade': None, 'f1_modelo': info['f1'], 'status': 'erro'}
 
         valid = {p: v for p, v in predictions.items() if v['status'] == 'ok'}
         if not valid:
@@ -208,8 +253,8 @@ def predict():
             },
             'pathogen_info': PATHOGEN_INFO,
         })
-    except Exception as e:
-        return jsonify({'error': f'Erro interno: {e}'}), 500
+    except Exception:
+        return jsonify({'error': 'Erro interno no servidor.'}), 500
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
@@ -220,4 +265,5 @@ if __name__ == '__main__':
     load_models()
     print(f'\n✅ {len(MODELS)}/{len(MODELS_INFO)} modelos prontos')
     print('Acesse: http://localhost:5000\n')
-    app.run(debug=True, port=5000)
+    debug = os.environ.get('BISPOLP_DEBUG', '0') == '1'
+    app.run(debug=debug, port=5000)
