@@ -106,13 +106,7 @@ export BISPOLP_DATA_PATH=/path/to/potato_data
 python src/train.py
 ```
 
-Models are saved to `models/saved/` and grid search results to `results/v4/`.
-
-To recompute all evaluation metrics (F1, precision, recall, ROC-AUC, accuracy, MCC):
-
-```bash
-python src/predict.py   # or rerun compute_metrics.py from the project root
-```
+Models are saved to `models/saved/` and the best configuration updated in `models/best_models_config.json`.
 
 ---
 
@@ -136,18 +130,11 @@ BiSPoLP-ML/
 │   ├── train.py            # Full training pipeline (grid search, save models)
 │   └── predict.py          # Prediction utilities
 │
-├── experiments/            # Exploratory scripts used during development
-│   ├── 01_baseline_v1.py   # Baseline pipeline v1
-│   ├── 02_test_abordagens.py
-│   ├── 03_test_fwd_rev.py
-│   └── 04_test_lazy.py     # LazyPredict screening
-│
 ├── results/
-│   ├── v1/                 # Baseline results (SMOTE, no PCA)
-│   └── v4/                 # Final pipeline results
+│   └── resultados_modelos_bispolp.csv  # Final consolidated metrics (all pathogens)
 │
-├── article/                   # not versioned (pending publication)
-└── docs/                      # not versioned (pending publication)
+├── article/                # not versioned (pending publication)
+└── docs/                   # not versioned (pending publication)
 ```
 
 ---
