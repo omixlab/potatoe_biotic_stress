@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-BiSPoLP — Biotic Stress Potato LncRNA Predictor
+BATATA — Biotic Attack Targeting Algorithm for Tuberosum Analysis
 Aplicação web Flask para predição de lncRNAs responsivos a patógenos de batata.
 
 Como rodar:
@@ -65,7 +65,7 @@ CONFIG_JSON = ROOT / 'models' / 'best_models_config.json'
 
 # FASTA de lncRNAs — ajuste DATA_PATH se os dados estiverem em outro local
 DATA_PATH = Path(os.environ.get(
-    'BISPOLP_DATA_PATH',
+    'BATATA_DATA_PATH',
     '/home/christian/Documentos/projeto_biotic_stress_potatoe/potato_data'
 ))
 LNCRNA_FASTA = DATA_PATH / 'Browse/Browse_sequence/lncRNA.fa'
@@ -139,7 +139,7 @@ def load_models():
 def load_sequences():
     if not LNCRNA_FASTA.exists():
         print(f'  Aviso: FASTA não encontrado em {LNCRNA_FASTA}')
-        print(f'  (defina BISPOLP_DATA_PATH=<pasta> para habilitar sequências aleatórias)')
+        print(f'  (defina BATATA_DATA_PATH=<pasta> para habilitar sequências aleatórias)')
         return
     for rec in SeqIO.parse(str(LNCRNA_FASTA), 'fasta'):
         SEQUENCES[rec.id] = str(rec.seq)
@@ -259,11 +259,11 @@ def predict():
 # ── Main ──────────────────────────────────────────────────────────────────────
 if __name__ == '__main__':
     print('=' * 65)
-    print('BiSPoLP — Biotic Stress Potato LncRNA Predictor')
+    print('BATATA — Biotic Attack Targeting Algorithm for Tuberosum Analysis')
     print('=' * 65)
     load_sequences()
     load_models()
     print(f'\n✅ {len(MODELS)}/{len(MODELS_INFO)} modelos prontos')
     print('Acesse: http://localhost:5000\n')
-    debug = os.environ.get('BISPOLP_DEBUG', '0') == '1'
+    debug = os.environ.get('BATATA_DEBUG', '0') == '1'
     app.run(debug=debug, port=5000)

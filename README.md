@@ -1,6 +1,6 @@
-# BiSPoLP — Biotic Stress Potato LncRNA Predictor
+# BATATA — Biotic Attack Targeting Algorithm for Tuberosum Analysis
 
-BiSPoLP is a machine learning tool that predicts which of 12 potato pathogens are likely to activate a given lncRNA during a biotic stress response, based on k-mer frequency composition of the input sequence.
+BATATA is a machine learning tool that predicts which of 12 potato pathogens are likely to activate a given lncRNA during a biotic stress response, based on k-mer frequency composition of the input sequence.
 
 The tool is available as a web application (Flask) with a bilingual interface (English / Portuguese).
 
@@ -10,7 +10,7 @@ The tool is available as a web application (Flask) with a bilingual interface (E
 
 ## How it works
 
-For each pathogen, BiSPoLP trains an independent binary classifier that learns to distinguish lncRNAs differentially expressed during infection (positive class) from a randomly sampled background of non-responsive lncRNAs (negative class). The input sequence is converted into a k-mer frequency vector, reduced via SelectKBest + PCA, scaled with StandardScaler, and classified. Probabilities are calibrated with Platt scaling (sigmoid) to avoid 0%/100% extremes.
+For each pathogen, BATATA trains an independent binary classifier that learns to distinguish lncRNAs differentially expressed during infection (positive class) from a randomly sampled background of non-responsive lncRNAs (negative class). The input sequence is converted into a k-mer frequency vector, reduced via SelectKBest + PCA, scaled with StandardScaler, and classified. Probabilities are calibrated with Platt scaling (sigmoid) to avoid 0%/100% extremes.
 
 **Pipeline (v4):**
 
@@ -59,13 +59,13 @@ MCC = Matthews Correlation Coefficient. All metrics are means over 5-fold strati
 
 ## Data
 
-BiSPoLP was trained on the [PotatoBSLnc](https://bis.zju.edu.cn/PotatoBSLnc/) database — a public resource of lncRNAs differentially expressed in potato (*Solanum tuberosum*) under biotic stress.
+BATATA was trained on the [PotatoBSLnc](https://bis.zju.edu.cn/PotatoBSLnc/) database — a public resource of lncRNAs differentially expressed in potato (*Solanum tuberosum*) under biotic stress.
 
 - **Total sequences:** 18,636 lncRNAs
 - **Positive class:** lncRNAs with |log₂FC| > 1 in differential expression analysis per pathogen
 - **Negative class:** randomly sampled background (1:1 ratio with positives per pathogen)
 
-The raw data is **not included** in this repository. Set the environment variable `BISPOLP_DATA_PATH` to point to your local copy of the PotatoBSLnc dataset before running the application or retraining.
+The raw data is **not included** in this repository. Set the environment variable `BATATA_DATA_PATH` to point to your local copy of the PotatoBSLnc dataset before running the application or retraining.
 
 ---
 
@@ -76,7 +76,7 @@ The raw data is **not included** in this repository. Set the environment variabl
 ```bash
 # 1. Create and activate the environment
 conda env create -f environment.yml
-conda activate bispolp
+conda activate batata
 
 # 2. Run the application
 python app.py
@@ -90,7 +90,7 @@ Alternatively, use the run script:
 ./run.sh
 
 # With a custom data path:
-BISPOLP_DATA_PATH=/path/to/potato_data ./run.sh
+BATATA_DATA_PATH=/path/to/potato_data ./run.sh
 ```
 
 ---
@@ -101,7 +101,7 @@ To retrain all 12 models from scratch:
 
 ```bash
 # Set the path to the PotatoBSLnc dataset
-export BISPOLP_DATA_PATH=/path/to/potato_data
+export BATATA_DATA_PATH=/path/to/potato_data
 
 python src/train.py
 ```
@@ -113,7 +113,7 @@ Models are saved to `models/saved/` and the best configuration updated in `model
 ## Project structure
 
 ```
-BiSPoLP-ML/
+BATATA-ML/
 ├── app.py                  # Flask web application (entry point)
 ├── environment.yml         # Conda environment definition
 ├── requirements.txt        # pip requirements (alternative to conda)
@@ -131,7 +131,7 @@ BiSPoLP-ML/
 │   └── predict.py          # Prediction utilities
 │
 ├── results/
-│   └── resultados_modelos_bispolp.csv  # Final consolidated metrics (all pathogens)
+│   └── resultados_modelos_batata.csv  # Final consolidated metrics (all pathogens)
 │
 ├── article/                # not versioned (pending publication)
 └── docs/                   # not versioned (pending publication)
@@ -141,9 +141,9 @@ BiSPoLP-ML/
 
 ## Citation
 
-If you use BiSPoLP in your research, please cite:
+If you use BATATA in your research, please cite:
 
-> Sanchez, C.D. (2025). *BiSPoLP: Biotic Stress Potato LncRNA Predictor — a machine learning tool for lncRNA classification under biotic stress in Solanum tuberosum.* [Manuscript in preparation]
+> Sanchez, C.D. (2025). *BATATA: Biotic Attack Targeting Algorithm for Tuberosum Analysis — a machine learning tool for lncRNA classification under biotic stress in Solanum tuberosum.* [Manuscript in preparation]
 
 ---
 

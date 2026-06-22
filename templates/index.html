@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BiSPoLP — Biotic Stress Potato LncRNA Predictor</title>
+  <title>BATATA — Biotic Attack Targeting Algorithm for Tuberosum Analysis</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -458,11 +458,11 @@
 // ── dark mode ─────────────────────────────────────────────────────────────────
 function toggleDark() {
   const dark = document.body.classList.toggle('dark');
-  localStorage.setItem('bispolp-dark', dark ? '1' : '0');
+  localStorage.setItem('batata-dark', dark ? '1' : '0');
   document.getElementById('dark-toggle').textContent = dark ? '☀️' : '🌙';
 }
 (function() {
-  const saved = localStorage.getItem('bispolp-dark');
+  const saved = localStorage.getItem('batata-dark');
   if (saved === '1' || saved === null) {
     document.body.classList.add('dark');
     document.addEventListener('DOMContentLoaded', () => {
@@ -476,7 +476,7 @@ function toggleDark() {
 
 const TRANSLATIONS = {
   en: {
-    title:          'BiSPoLP — Biotic Stress Potato LncRNA Predictor',
+    title:          'BATATA — Biotic Attack Targeting Algorithm for Tuberosum Analysis',
     subtitle:       'Identify the probability of 12 pathogens from an lncRNA sequence using Machine Learning',
     inputTitle:     '📝 lncRNA Sequence',
     inputPlaceholder:
@@ -535,7 +535,7 @@ const TRANSLATIONS = {
     },
   },
   pt: {
-    title:          'BiSPoLP — Preditor de lncRNA de Batata por Machine Learning',
+    title:          'BATATA — Preditor de lncRNA de Batata por Aprendizado de Máquina',
     subtitle:       'Identifique a probabilidade de 12 patógenos a partir de uma sequência lncRNA via Machine Learning',
     inputTitle:     '📝 Sequência lncRNA',
     inputPlaceholder:
@@ -874,7 +874,7 @@ window.addEventListener('load', loadModelsInfo);
     <img src="/static/OmixLab_logo.png" alt="OmixLab logo">
   </div>
   <p>
-    BiSPoLP — Biotic Stress Potato LncRNA Predictor &nbsp;|&nbsp;
+    BATATA — Biotic Attack Targeting Algorithm for Tuberosum Analysis &nbsp;|&nbsp;
     Christian Domingues Sanchez &nbsp;|&nbsp;
     <a href="mailto:christian.kun@gmail.com">christian.kun@gmail.com</a>
   </p>
