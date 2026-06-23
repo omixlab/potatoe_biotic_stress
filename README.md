@@ -59,7 +59,7 @@ MCC = Matthews Correlation Coefficient. All metrics are means over 5-fold strati
 
 ## Data
 
-BATATA was trained on the [PotatoBSLnc](https://bis.zju.edu.cn/PotatoBSLnc/) database — a public resource of lncRNAs differentially expressed in potato (*Solanum tuberosum*) under biotic stress.
+BATATA was trained on the [PotatoBSLnc](https://www.sdklab-biophysics-dzu.net/PotatoBSLnc/) database — a public resource of lncRNAs differentially expressed in potato (*Solanum tuberosum*) under biotic stress.
 
 - **Total sequences:** 18,636 lncRNAs
 - **Positive class:** lncRNAs with |log₂FC| > 1 in differential expression analysis per pathogen
