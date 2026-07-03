@@ -1,4 +1,4 @@
-name: bispolp
+name: batata
 channels:
   - conda-forge
   - defaults

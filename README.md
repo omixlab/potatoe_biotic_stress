@@ -62,8 +62,8 @@ MCC = Matthews Correlation Coefficient. All metrics are means over 5-fold strati
 BATATA was trained on the [PotatoBSLnc](https://www.sdklab-biophysics-dzu.net/PotatoBSLnc/) database — a public resource of lncRNAs differentially expressed in potato (*Solanum tuberosum*) under biotic stress.
 
 - **Total sequences:** 18,636 lncRNAs
-- **Positive class:** lncRNAs with |log₂FC| > 1 in differential expression analysis per pathogen
-- **Negative class:** randomly sampled background (1:1 ratio with positives per pathogen)
+- **Positive class:** lncRNAs with log₂FC > 1 (up-regulated ≥ 2-fold) in the differential expression analysis for each pathogen
+- **Negative class:** lncRNAs absent from that pathogen's differential expression table, randomly sampled (1:1 ratio with positives)
 
 The raw data is **not included** in this repository. Set the environment variable `BATATA_DATA_PATH` to point to your local copy of the PotatoBSLnc dataset before running the application or retraining.
 
@@ -127,8 +127,7 @@ BATATA-ML/
 │   └── best_models_config.json  # Best K, classifier and all CV metrics
 │
 ├── src/
-│   ├── train.py            # Full training pipeline (grid search, save models)
-│   └── predict.py          # Prediction utilities
+│   └── train.py            # Full training pipeline (grid search, save models)
 │
 ├── results/
 │   └── resultados_modelos_batata.csv  # Final consolidated metrics (all pathogens)
