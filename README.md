@@ -67,6 +67,10 @@ BATATA was trained on the [PotatoBSLnc](https://www.sdklab-biophysics-dzu.net/Po
 
 The raw data is **not included** in this repository. Set the environment variable `BATATA_DATA_PATH` to point to your local copy of the PotatoBSLnc dataset before running the application or retraining.
 
+### Sample sequences
+
+A small demo file — [`data/sample_lncRNAs.fa`](data/sample_lncRNAs.fa) — bundles 15 real potato lncRNAs (a subset of PotatoBSLnc) so the **"random sequence"** button works out of the box without the full dataset. When `BATATA_DATA_PATH` points to the complete PotatoBSLnc FASTA, the app uses that instead and the random button draws from all 18,636 sequences.
+
 ---
 
 ## Setup
@@ -121,6 +125,9 @@ BATATA-ML/
 │
 ├── templates/
 │   └── index.html          # Web interface (EN / PT-BR)
+│
+├── data/
+│   └── sample_lncRNAs.fa   # 15 demo lncRNAs (PotatoBSLnc subset) for the random button
 │
 ├── models/
 │   ├── saved/              # Trained .pkl files (60 files: 5 per pathogen)

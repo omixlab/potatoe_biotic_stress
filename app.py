@@ -63,12 +63,15 @@ ROOT        = Path(__file__).parent
 MODELS_DIR  = ROOT / 'models' / 'saved'
 CONFIG_JSON = ROOT / 'models' / 'best_models_config.json'
 
-# FASTA de lncRNAs — ajuste DATA_PATH se os dados estiverem em outro local
+# FASTA de lncRNAs — ajuste DATA_PATH se os dados estiverem em outro local.
+# Se o dataset completo não estiver disponível, usa o FASTA de amostra
+# embutido no repositório (data/sample_lncRNAs.fa) para o botão "aleatório".
 DATA_PATH = Path(os.environ.get(
     'BATATA_DATA_PATH',
     '/home/christian/Documentos/projeto_biotic_stress_potatoe/potato_data'
 ))
 LNCRNA_FASTA = DATA_PATH / 'Browse/Browse_sequence/lncRNA.fa'
+SAMPLE_FASTA = ROOT / 'data' / 'sample_lncRNAs.fa'
 
 # ── Informações estáticas por patógeno ────────────────────────────────────────
 PATHOGEN_INFO = {
@@ -137,13 +140,19 @@ def load_models():
             print(f'  ✗ {pathogen}: {e}')
 
 def load_sequences():
-    if not LNCRNA_FASTA.exists():
-        print(f'  Aviso: FASTA não encontrado em {LNCRNA_FASTA}')
-        print(f'  (defina BATATA_DATA_PATH=<pasta> para habilitar sequências aleatórias)')
+    # Prefere o dataset completo (BATATA_DATA_PATH); se ausente, usa a amostra
+    # embutida no repositório para que o botão "aleatório" funcione out-of-the-box.
+    if LNCRNA_FASTA.exists():
+        fasta, origem = LNCRNA_FASTA, 'dataset completo'
+    elif SAMPLE_FASTA.exists():
+        fasta, origem = SAMPLE_FASTA, 'amostra embutida'
+    else:
+        print(f'  Aviso: nenhum FASTA encontrado ({LNCRNA_FASTA} nem {SAMPLE_FASTA})')
+        print(f'  (defina BATATA_DATA_PATH=<pasta> para usar o dataset completo)')
         return
-    for rec in SeqIO.parse(str(LNCRNA_FASTA), 'fasta'):
+    for rec in SeqIO.parse(str(fasta), 'fasta'):
         SEQUENCES[rec.id] = str(rec.seq)
-    print(f'  ✓ {len(SEQUENCES)} sequências carregadas')
+    print(f'  ✓ {len(SEQUENCES)} sequências carregadas ({origem})')
 
 # ── Extração de k-mers ────────────────────────────────────────────────────────
 def kmers(seq: str, k: int) -> Counter:
