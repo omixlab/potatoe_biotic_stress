@@ -97,6 +97,28 @@ Alternatively, use the run script:
 BATATA_DATA_PATH=/path/to/potato_data ./run.sh
 ```
 
+## Command-line interface (no web server)
+
+For batch or headless use, `predict_cli.py` scores sequences from the terminal
+using the same models and preprocessing as the web app:
+
+```bash
+# a FASTA file -> table of probabilities on stdout
+python predict_cli.py sequences.fa
+
+# save to CSV, show only each sequence's most likely pathogen
+python predict_cli.py sequences.fa -o results.csv --top
+
+# a single raw sequence
+python predict_cli.py --sequence ATCGATCG...
+
+# from stdin
+cat sequences.fa | python predict_cli.py -
+```
+
+Output is CSV: `id, length, <one column per pathogen, %>, top_pathogen, top_probability_%`
+(with `--top`, just `id, length, top_pathogen, probability_%`).
+
 ---
 
 ## Retraining
