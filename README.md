@@ -177,4 +177,4 @@ If you use BATATA in your research, please cite:
 
 ## License
 
-This project is intended for academic and research use.
+The BATATA source code is released under the [MIT License](LICENSE).
